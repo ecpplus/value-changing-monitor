@@ -1,0 +1,17 @@
+{
+  "name": "value-changing-monitor",
+  "version": "0.0.1",
+  "description": "API service which notify you that some monitoring value changed.",
+  "main": "handler.js",
+  "dependencies": {
+    "dynamodb": "^0.3.6",
+    "node-uuid": "^1.4.7",
+    "request": "^2.75.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,40 @@
+service: ValueChangingNotifier
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+  stage: dev
+  region: ap-northeast-1
+  memorySize: 128
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:UpdateItem"
+      Resource:
+        # You should change account id
+        - "arn:aws:dynamodb:ap-northeast-1:1234567890:table/value-changing-monitor"
+
+functions:
+  create:
+    handler: handler.createResource
+    memorySize: 128
+    events:
+      - http:
+          path: resources
+          method: post
+
+  update:
+    handler: handler.updateResource
+    memorySize: 128
+    events:
+      - http:
+          path: resources/{uuid}
+          method: put
+          request:
+            parameters:
+              paths:
+                uuid: true

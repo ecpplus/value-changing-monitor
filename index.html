@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Value-changing-monitor by ecpplus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Value-changing-monitor</h1>
+      <h2 class="project-tagline">API service which notify you that some monitoring value changed.</h2>
+      <a href="https://github.com/ecpplus/value-changing-monitor" class="btn">View on GitHub</a>
+      <a href="https://github.com/ecpplus/value-changing-monitor/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/ecpplus/value-changing-monitor/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="value-changing-monitor" class="anchor" href="#value-changing-monitor" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Value Changing Monitor</h1>
+
+<p>This is an API which get you know some value changes. Implemented with <a href="https://github.com/serverless/serverless">Serverless</a></p>
+
+<p>For example, you can watch registration count of some service, a product price, temparature, .etc.  Anything which has value can be monitored.</p>
+
+<h1>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h1>
+
+<ol>
+<li>Create your resource that is to be monitored. Define initial value and Slack webhook info for receive notifications.</li>
+<li>Just only PUT a value continuously. </li>
+</ol>
+
+<h2>
+<a id="create-a-resource" class="anchor" href="#create-a-resource" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Create a resource</h2>
+
+<h3>
+<a id="request" class="anchor" href="#request" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Request</h3>
+
+<p>POST a JSON to create a resource.  </p>
+
+<h4>
+<a id="url" class="anchor" href="#url" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><strong><a href="https://monitor.ecp.plus/resources">https://monitor.ecp.plus/resources</a></strong></p>
+
+<h4>
+<a id="body" class="anchor" href="#body" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Body</h4>
+
+<p>JSON schema is following.</p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>TEST<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>initialValue<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>slack<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>url<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>https://hooks.slack.com/services/AAAA/1111/qwerty<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>channel<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>#value_test<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>template<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Users count is {value}<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>icon_emoji<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>:smile:<span class="pl-pds">"</span></span>
+  }
+}</pre></div>
+
+<p>All fields except <code>slack.icon_emoji</code> are required.</p>
+
+<p><code>template</code>.  It includes a special placeholder <code>{value}</code>.  When posting a notification, the <code>{value}</code> will be replaced to the actual value.</p>
+
+<h4>
+<a id="curl-example" class="anchor" href="#curl-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>cURL example</h4>
+
+<div class="highlight highlight-source-shell"><pre>curl https://monitor.ecp.plus/resources -X POST -d <span class="pl-s"><span class="pl-pds">"</span>{name: 'Registration count', initialValue: 0, slack: {url: 'https://hooks.slack.com/services/1111/AAAA/qwerty', channel: '#value_changing_test', template: 'Awesome value is {value}'</span>
+<span class="pl-s">, icon_emoji: ':smile:'}}<span class="pl-pds">"</span></span></pre></div>
+
+<h3>
+<a id="response" class="anchor" href="#response" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Response</h3>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>uuid<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>f0d675cf-b8dc-46c9-9536-23ab358d2817<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>Registration count<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>
+}</pre></div>
+
+<p><strong>Please keep the <code>uuid</code>.</strong><br>
+You will use <code>uuid</code> to PUT values.</p>
+
+<h2>
+<a id="put-a-value" class="anchor" href="#put-a-value" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Put a value</h2>
+
+<p>If PUT value is different from previous value, you will receive a Slack notification.</p>
+
+<h3>
+<a id="request-1" class="anchor" href="#request-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Request</h3>
+
+<h4>
+<a id="url-1" class="anchor" href="#url-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><strong><a href="https://monitor.ecp.plus/resources/%7Buuid%7D">https://monitor.ecp.plus/resources/{uuid}</a></strong></p>
+
+<p><code>{uuid}</code> is that you got when creating.</p>
+
+<h4>
+<a id="body-1" class="anchor" href="#body-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Body</h4>
+
+<p>PUT only a value.</p>
+
+<div class="highlight highlight-source-js"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">100</span>
+}</pre></div>
+
+<h4>
+<a id="curl-example-1" class="anchor" href="#curl-example-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>cURL example</h4>
+
+<div class="highlight highlight-source-shell"><pre>curl https://monitor.ecp.plus/resources/f0d675cf-b8dc-46c9-9536-23ab358d2817 -X PUT -d <span class="pl-s"><span class="pl-pds">"</span>{value: 100}<span class="pl-pds">"</span></span></pre></div>
+
+<h3>
+<a id="response-1" class="anchor" href="#response-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Response</h3>
+
+<p>If the value has changed.</p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>changed<span class="pl-pds">"</span></span>
+}</pre></div>
+
+<p>If the value hasn't changed.</p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>not changed<span class="pl-pds">"</span></span>
+}</pre></div>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/ecpplus/value-changing-monitor">Value-changing-monitor</a> is maintained by <a href="https://github.com/ecpplus">ecpplus</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>

@@ -1,0 +1,84 @@
+- @title = 'Value changing monitor &#128270;'
+
+.container.m-t-1.m-b-1
+  %ol.breadcrumb
+    %li.breadcrumb-item= link_to 'Home', 'https://ecpplus.net'
+    %li.breadcrumb-item.active Value changing monitor
+
+  .row
+    .col-sm-12
+      %h1 Value changing monitor &#128270;
+      %p
+        This is an super simple API which get you know some value changes!
+        %br
+        Once you create a resource, then only put value continuously. You will get notifications only on the value changes&#128516;
+
+      %h2 What monitor?
+      %p
+        You can monitor everything having a value.
+      %p
+        For example,
+        %br
+        %ul
+          %li Registration count of your awesome service&#128200;
+          %li Price of the item you wanna get&#128181;
+          %li .etc
+
+      %h2 Who can use this?
+      %p
+        Everyone can use this API. It's free.
+
+      %h2 Usage
+      %h3 Create a resource
+      %p Getting started with a form following.
+      %form
+        .form-group
+          %label Name
+          %input{type: 'text', name: 'name'}
+        %button.btn.btn-primary{type: 'submit'} Create
+
+      %h3 Put a value
+      %p If PUT value is different from previous put value, you will receive a Slack notification.
+      %p You can put a value via HTTP Request.
+
+      %h4 Request
+
+      %h5 URL
+      %strong https://monitor.ecp.plus/resources/{uuid}
+      %p
+        %code {uuid}
+        is that you got when created.
+
+      %h5 Body
+      %p
+        PUT only the current value
+      .highlight
+        %code.language-json{data: {lang: 'json'}}
+          :preserve
+            {
+              "value": 100
+            }
+
+      %h5 cURL example
+      %pre
+        curl https://monitor.ecp.plus/resources/f0d675cf-b8dc-46c9-9536-23ab358d2817 -X PUT -d "{value: 100}"
+
+      %h4 Response
+      %p On value changed.
+
+      %pre
+        %code
+          :preserve
+            {
+              "result": "changed"
+            }
+
+      %p On value not changed.
+      %pre
+        %code
+          :preserve
+            {
+              "result": "not changed"
+            }
+
+

@@ -1,0 +1,24 @@
+{
+  "name": "awesome-ios-starred-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.es6",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@"
+  },
+  "author": "chu",
+  "license": "ISC",
+  "dependencies": {
+    "mithril": "^0.2.5"
+  },
+  "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.14.0",
+    "webpack": "^1.13.2"
+  }
+}

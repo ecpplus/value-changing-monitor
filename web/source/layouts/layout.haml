@@ -1,0 +1,12 @@
+!!! 5
+%html
+  %head
+    %title= @title || 'Value changing monitor &#128270;'
+    %meta{ charset: 'utf-8' }
+    %meta{ http_equiv: 'X-UA-Compatible', content: 'IE=edge' }
+    %meta{ name: 'viewport', content: 'width=device-width,initial-scale=1,shrink-to-fit=no' }
+    %link{ href: 'https://fonts.googleapis.com/css?family=Roboto:400,500,700', rel: 'stylesheet' }
+    = stylesheet_link_tag :site
+  %body
+    = yield
+    = javascript_include_tag 'bundle'

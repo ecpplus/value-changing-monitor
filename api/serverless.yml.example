@@ -21,6 +21,7 @@ provider:
 functions:
   create:
     handler: handler.createResource
+    integration: lambda
     memorySize: 128
     events:
       - http:
@@ -29,6 +30,7 @@ functions:
 
   update:
     handler: handler.updateResource
+    integration: lambda
     memorySize: 128
     events:
       - http:

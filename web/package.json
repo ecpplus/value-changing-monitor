@@ -1,14 +1,9 @@
 {
-  "name": "awesome-ios-starred-web",
-  "version": "1.0.0",
+  "name": "Value changing monitor web",
+  "version": "0.0.1",
   "description": "",
   "main": "index.es6",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@"
   },
   "author": "chu",
   "license": "ISC",

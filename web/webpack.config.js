@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-
 const config = {
     entry: './source/javascripts/index.js',
 
@@ -22,7 +21,6 @@ const config = {
         ]
     },
 
-    // devtool: ['eval'],
     devtool: ['cheap-module-source-map'],
 
     plugins: [
@@ -31,11 +29,6 @@ const config = {
                 'NODE_ENV': JSON.stringify(process.env.NODE_ENV)
             }
         }),
-        // new webpack.optimize.UglifyJsPlugin({
-            // compress:{
-                // // warnings: true
-            // }
-        // })
     ],
 }
 
@@ -48,14 +41,9 @@ if (process.env.NODE_ENV === 'production') {
             }
         })
     )
-    // babelSettings.plugins.push("transform-react-inline-elements");
-    // babelSettings.plugins.push("transform-react-constant-elements");
 
 } else {
     config.devtool = "#cheap-module-source-map"
-    // config.plugins.push(
-        // new webpack.HotModuleReplacementPlugin()
-    // );
 }
 
 

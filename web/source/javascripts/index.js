@@ -26,43 +26,164 @@ class Component {
     }
 }
 
-class CategoriesList extends Component {
-    init(ctrl) {
+class Resource {
+    constructor(data) {
+        data = data || {}
+        this.name = m.prop(data.name || "")
+        this.initialValue = m.prop(data.initialValue || "")
+        this.slackUrl = m.prop(data.slackUrl || "")
+        this.slackChannel = m.prop(data.slackchannel || "")
+        this.slackTemplate = m.prop(data.slackTemplate || "")
+        this.slackIconEmoji = m.prop(data.slackIconEmoji || "")
     }
 
-    view(ctrl) {
-        return m('div.search.m-b-3', Object.keys(this.props).sort().map(category => {
-            return m(`a.search__btn.btn.btn-secondary.btn-sm[role='button'][href='#${category}']`, category)
-        }))
+    toParams() {
+        return {
+            "name": this.name(),
+            "initialValue": this.initialValue(),
+            "slack": {
+                "url": this.slackUrl(),
+                "channel": this.slackChannel(),
+                "template": this.slackTemplate(),
+                "icon_emoji": this.slackIconEmoji()
+            }
+        }
+    }
+
+    save() {
+        return m.request({method: "POST", url: "https://monitor.ecp.plus/resources", data: this.toParams()})
     }
 }
 
-class RepositoriesList extends Component {
-    init(ctrl) {
+class ResourceResult extends Component {
+    init(data) {
+        this.resource = data
+    }
+
+    view() {
+        return [m('div', [
+            m('h2', m.trust('Resource created &#128077;')),
+            m('p', 'To monitor the resource, keep doing PUT requests as following,'),
+            m('dl', [
+                m('dt', 'URL'),
+                m('dd', `https://monitor.ecp.plus/resources/${this.props.uuid}`),
+                m('dt', 'HTTP method'),
+                m('dd', 'PUT'),
+                m('dt', 'Request body example (JSON)'),
+                m('dd', [
+                    m('textarea.form-control', {row: 3}, `{ value: 100 }`)
+                ]),
+                m('dt', 'cURL example'),
+                m('dd', [
+                    m('textarea.form-control', {row: 3}, `curl https://monitor.ecp.plus/resources/${this.props.uuid} -X PUT -d "{value: 100}"`)
+                ]),
+            ]),
+        ])]
+    }
+}
+
+class CreateForm extends Component {
+    init() {
+        this.resource = m.prop(new Resource())
+        this.saving = false
+    }
+
+    save(event) {
+        event.preventDefault()
+
+        this.saving = true
+        m.redraw(true)
+
+        this.resource().save().then(result => {
+            m.mount(
+                document.getElementById('form'),
+                new ResourceResult(result)
+            )
+            this.saving = false
+        }).catch(error => {
+            alert(error)
+            this.saving = false
+        })
+
+        return false
+    }
+
+    createButton() {
+        if (this.saving) {
+            return [
+                m('span', 'Creating...'),
+                m('div.spinner.js-spinner', ''),
+            ]
+        } else {
+            return [
+                m('span', 'Create'),
+            ]
+        }
     }
 
     view(ctrl) {
-        let categories = this.props
-
-        return (
-            m('div', {}, Object.keys(categories).sort().map(category => {
-                let repos = categories[category].sort((a, b) => b.stargazers_count - a.stargazers_count)
-                return m('div.category.m-b-2', {}, [
-                    m(`h3#${category}`, {}, [
-                        category,
-                        m('a.pull-xs-right.text-muted.category__back-to-top', {href: '#categories'}, m.trust("&#11014;"))
-                    ]),
-                    m('div.list-group', {}, repos.map(repo => {
-                        return m('a.list-group-item.category__repo', {href: `https://github.com/${repo.path}`, target: "_blank", rel: "noopener noreferrer"}, [
-                            m('span.category__repo__tag.tag.tag-default.tag-pill.pull-xs-right', {}, repo.stargazers_count),
-                            m('strong', {}, repo.name),
-                            m.trust("&nbsp;"),
-                            m('span.category__repo__description', {}, repo.description)
+        return [
+            m('h2', 'Create a resource'),
+            m('p', 'Getting started with a form following.'),
+            m("form", {onsubmit: this.save.bind(this)}, [
+                m(".form-group", [
+                    m("label", "Name (*)"),
+                    m("input.form-control[placeholder='Registration count'][type='text'][required='required']", {oninput: m.withAttr('value', this.resource().name), value: this.resource().name()})
+                ]),
+                m(".form-group", [
+                    m("label", "Initial value (*)"),
+                    m("input.form-control[name='initial_value'][placeholder='861'][type='text'][required='required']", {oninput: m.withAttr('value', this.resource().initialValue), value: this.resource().initialValue()}),
+                    m("p.hint", [
+                        m("small", [
+                            m("span", "int or string"),
                         ])
-                    }))
-                ])
-            }))
-        )
+                    ])
+                ]),
+                m("fieldset", [
+                    m("legend", "Slack"),
+                    m(".form-group", [
+                        m("label", "Webhook URL (*)"),
+                        m("input.form-control[name='slack_webhook_url'][placeholder='https://hooks.slack.com/services/AAAA/1111/qwerty'][type='url'][pattern='^https://hooks.slack.com/.*'][required='required']", {oninput: m.withAttr('value', this.resource().slackUrl), value: this.resource().slackUrl()}),
+                        m("p.hint", [
+                            m("small", [
+                                m("span", "should begin with "),
+                                m("i", "https://hooks.slack.com/"),
+                            ])
+                        ])
+                    ]),
+                    m(".form-group", [
+                        m("label", "Channel (*)"),
+                        m("input.form-control[name='slack_channel'][placeholder='#monitoring'][type='text'][required='required']", {oninput: m.withAttr('value', this.resource().slackChannel), value: this.resource().slackChannel()}),
+                        m("p.hint", [
+                            m("small", [
+                                m("span.hint", "channel to be notified"),
+                            ])
+                        ])
+                    ]),
+                    m(".form-group", [
+                        m("label", "Template (*)"),
+                        m("input.form-control[name='slack_template'][placeholder='Registration count is {value}'][type='text']", {oninput: m.withAttr('value', this.resource().slackTemplate), value: this.resource().slackTemplate()}),
+                        m("p.hint", [
+                            m("small", [
+                                m("span", "body to be notified / "),
+                            ]),
+                            m("small", [
+                                m("code", "{value}"),
+                                m("span", " should be included"),
+                            ])
+                        ])
+                    ]),
+                    m(".form-group", [
+                        m("label", [
+                            m('span', "Icon emoji "),
+                            m("small", "(optional)")
+                        ]),
+                        m("input.form-control[name='slack_icon_emoji'][placeholder=':smile:'][type='text']", {oninput: m.withAttr('value', this.resource().slackIconEmoji), value: this.resource().slackIconEmoji()})
+                    ])
+                ]),
+                m("button.btn.btn-primary.btn-block[type='submit']", this.createButton())
+            ]
+        )]
     }
 }
 
@@ -74,27 +195,7 @@ class RepositoriesList extends Component {
 ga('create', 'UA-74141162-2', 'auto')
 ga('send', 'pageview')
 
-let contentElement = document.getElementById('contents')
-if (contentElement) {
-    let jsonURL = contentElement.dataset.url
-
-    m.request({method: "GET", url: jsonURL}).then(repositories => {
-        let categories = {}
-        repositories.forEach(repo => {
-            if (!categories[repo.category1]) {
-                categories[repo.category1] = []
-            }
-            categories[repo.category1].push(repo)
-        })
-
-        m.mount(
-            document.getElementById('search-categories'),
-            new CategoriesList(categories)
-        )
-
-        m.mount(
-            contentElement,
-            new RepositoriesList(categories)
-        )
-    })
-}
+m.mount(
+    document.getElementById('form'),
+    new CreateForm()
+)

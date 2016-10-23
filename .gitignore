@@ -4,3 +4,5 @@ serverless.yml
 
 BingSiteAuth.xml
 *.sh
+
+web/source/javascripts/bundle.*

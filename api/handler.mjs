@@ -1,12 +1,14 @@
 'use strict';
 
-const aws     = require('aws-sdk')
-const uuid    = require('node-uuid')
-const request = require('request')
+// const aws     = require('aws-sdk')
+import { randomUUID } from "crypto";
 
 const dynamoDBOptions = { apiVersion: '2012-08-10', region: 'ap-northeast-1' }
 const dynamoDBCommonParams = { TableName: 'value-changing-monitor' }
-const dynamoDB = new aws.DynamoDB(dynamoDBOptions)
+// const dynamoDB = new aws.DynamoDB(dynamoDBOptions)
+
+import { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb"; // ES Modules import
+const client = new DynamoDBClient({});
 
 /**
  *  Create new resorce for monitoring
@@ -56,7 +58,7 @@ const putParams = (itemUUID, body) => {
             slackURL: { S: String(body.slack.url) },
             slackChannel: { S: String(slackChannel) },
             slackTemplate: { S: String(body.slack.template) },
-        }
+        },
     }
 
     if (body.slack.icon_emoji) {
@@ -66,29 +68,22 @@ const putParams = (itemUUID, body) => {
     return Object.assign({}, dynamoDBCommonParams, itemAttr)
 }
 
-module.exports.createResource = (event, context, callback) => {
-    let itemUUID = uuid.v4()
-    let body = event.body
+export const createResource = async (event) => {
+    const itemUUID = randomUUID()
+    const body = JSON.parse(event.body)
 
-    validatesBody(body).then(() => {
-        let params = putParams(itemUUID, body)
-        dynamoDB.putItem(params, (error, data) => {
-            if (error) {
-                callback(error, null)
-            } else {
-                let item = {
-                    uuid: itemUUID,
-                    name: body.name,
-                    value: body.initialValue,
-                }
-                callback(null, item)
-            }
-        })
-    }).catch(error => {
-        callback(error, null)
-    })
+    await validatesBody(body)
+    const params = putParams(itemUUID, body)
+    const command = new PutItemCommand(params)
+
+    const response = await client.send(command)
+    const item = {
+        uuid: itemUUID,
+        name: response.Item.name,
+        value: response.Item.initialValue,
+    }
+    return item
 }
-
 
 /**
  *  Update value and notify to slack on value is changed
@@ -129,59 +124,48 @@ const updateParams = (params, newValue) => {
     })
 }
 
-const getItem = (params) => {
-    return new Promise((resolve, reject) => {
-        dynamoDB.getItem(params, (error, data) => {
-            if (error || data.Item === null) {
-                reject('Resource was not found')
-            } else {
-                resolve(data.Item)
-            }
-        })
-    })
+const getItem = async (params) => {
+    const command = new GetItemCommand(params)
+    const response = await client.send(command)
+    return response.Item
 }
 
-const postToSlack = (item, newValue) => {
+const postToSlack = async (item, newValue) => {
     let body = item.slackTemplate.S.replace('{value}', newValue)
     let payload = {channel: item.slackChannel.S, username: "valuemonitor", text: body}
     if(item.slackEmoji) { payload.icon_emoji = item.slackEmoji.S }
-
-    console.log(payload)
-
-    return new Promise((resolve, reject) => {
-        request.post({url: item.slackURL.S, form: {payload: JSON.stringify(payload)}}, (err,httpResponse,body) => {
-            if (err === null) {
-                resolve(item)
-            } else {
-                reject('failed to POST to Slack')
-            }
-        })
-    })
+    
+    const url = item.slackURL.S
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(payload))
+    
+    const options = {
+      method: 'POST',
+      body: formData,
+    }
+    
+    const response = await fetch(url, options);
+    console.log(response);
 }
 
-module.exports.updateResource = (event, context, callback) => {
-    let newValue = String(event.body.value)
-    let dynamoParams = commonParams(event.path.uuid)
+export const updateResource = async (event) => {
+    const newValue = String(event.body.value)
+    const dynamoParams = commonParams(event.path.uuid)
 
-    validatesUUID(event.path.uuid).then(paramsUUID => {
-        let params = getParams(dynamoParams)
-        return getItem(params)
-    }).then(item => {
-        if (item.value.S == newValue) {
-            callback(null, {result: 'not changed'})
-        } else {
-            return postToSlack(item, newValue)
-        }
-    }).then(item => {
-        let params = updateParams(dynamoParams, newValue)
-        dynamoDB.updateItem(params, (error, data) => {
-            if (error) {
-                callback(error, null)
-            } else {
-                callback(null, {result: 'changed'})
-            }
-        })
-    }).catch(error => {
-        callback(error, null)
-    })
+    const uuid = event.path.uuid
+    await validatesUUID(uuid)
+    const getItemParams = getParams(dynamoParams)
+    const item = await getItem(getItemParams)
+
+    if (item.value.S == newValue) {
+        return {result: 'not changed'}
+    } 
+    
+    await postToSlack(item, newValue)
+
+    let updateItemParams = updateParams(dynamoParams, newValue)
+    const updateItemCommand = new UpdateItemCommand(updateItemParams)
+    await client.send(updateItemCommand)
+
+    return {result: 'changed'}
 }

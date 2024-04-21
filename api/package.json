@@ -1,12 +1,10 @@
 {
   "name": "value-changing-monitor",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "API service which notify you that some monitoring value changed.",
-  "main": "handler.js",
+  "type": "module",
+  "main": "handler.mjs",
   "dependencies": {
-    "dynamodb": "^0.3.6",
-    "node-uuid": "^1.4.7",
-    "request": "^2.75.0"
   },
   "devDependencies": {
     "serverless": "^1.0.3"
